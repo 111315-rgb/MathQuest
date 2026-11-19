@@ -45,7 +45,7 @@ const nf=(x,d=0)=>x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFract
 let P={pts:0,b:{},t:{}};try{P=Object.assign(P,JSON.parse(localStorage.getItem("mq")||"{}"))}catch(e){}
 const save=()=>{try{localStorage.setItem("mq",JSON.stringify(P))}catch(e){}};
 /* === BACKEND: paste your Apps Script Web App URL (ends with /exec) === */
-const API="PASTE_YOUR_WEB_APP_URL_HERE";
+const API="https://script.google.com/macros/s/AKfycbw4Ch7R_0N0JGP_XAwWZzO1rLedEhuqsNmPu4FOiBLRwi7PForiGBMWB3x9vMEQeHUl/exec";
 const api=(a,d)=>API.startsWith("http")?fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action:a},d))}).then(r=>r.json()):Promise.resolve({ok:false});
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function loadLB(){api("leaderboard",{}).then(d=>{const e=$("#lb");if(!e)return;e.innerHTML=d.ok&&d.rows.length?d.rows.map((x,i)=>`<div>${i+1}. ${esc(x.name)} – ${x.points} pts</div>`).join(""):"No scores yet / Wala pang iskor."}).catch(()=>{})}
