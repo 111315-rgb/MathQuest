@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>MathQuest K–6 · Matematika</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fdf6e3;--card:#fff;--ink:#1d2b4f;--mut:#667394;--pri:#1f6feb;--ok:#168a4f;--okb:#d9f5e6;--bad:#c7372f;--badb:#fde2df;--line:#e6dcc3;--chip:#f4ead0;--on:#ffc93c;--onink:#3a2a00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a30;--card:#1b2542;--ink:#eef2ff;--mut:#9aa8cf;--pri:#6ea4ff;--ok:#5fe0a0;--okb:#143d2c;--bad:#ff8c84;--badb:#4a1f1f;--line:#2c3860;--chip:#26335a;--on:#ffc93c;--onink:#2b2000}}
+:root[data-theme="dark"]{--bg:#121a30;--card:#1b2542;--ink:#eef2ff;--mut:#9aa8cf;--pri:#6ea4ff;--ok:#5fe0a0;--okb:#143d2c;--bad:#ff8c84;--badb:#4a1f1f;--line:#2c3860;--chip:#26335a;--on:#ffc93c;--onink:#2b2000}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Nunito,system-ui,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:16px}
+h1,h2,h3,h4{font-family:"Baloo 2",system-ui,sans-serif;margin:0;line-height:1.2}
+h1{font-size:2.2rem;letter-spacing:-.5px}
+h2{font-size:1.7rem;margin:6px 0}
+h3{font-size:1.15rem;color:var(--mut);font-weight:500}
+h4{font-size:1rem;margin:0 0 8px}
+.sub{margin:0 0 14px;color:var(--mut)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.chip,.opt,.pri,.sec{font:inherit;font-weight:700;cursor:pointer;border-radius:14px;border:2px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 12px;min-height:44px}
+.chip small{display:block;font-weight:400;color:var(--mut);font-size:.72rem}
+.chip.on{background:var(--on);border-color:var(--on);color:var(--onink)}
+.chip.on small{color:var(--onink)}
+.pri{background:var(--pri);border-color:var(--pri);color:#fff;width:100%;font-size:1.15rem;padding:12px;margin-top:6px}
+.sec{width:100%;margin-top:8px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.bd{display:flex;gap:10px;font-size:1.8rem;margin-top:6px}
+.lock{filter:grayscale(1);opacity:.3}
+.bar{height:12px;background:var(--chip);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.meta{display:flex;justify-content:space-between;margin:8px 2px;color:var(--mut);font-weight:700}
+.in{margin:0;color:var(--mut);font-size:.85rem}
+.ch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.opt{font-size:1.3rem;min-height:56px}
+.opt.ok{background:var(--okb);border-color:var(--ok)}
+.opt.bad{background:var(--badb);border-color:var(--bad)}
+input{width:100%;font:inherit;font-size:1.4rem;padding:12px;margin-top:12px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink)}
+.fb{margin-top:12px;padding:10px 12px;border-radius:12px;font-weight:700}
+.fb.ok{background:var(--okb);color:var(--ok)}.fb.bad{background:var(--badb);color:var(--bad)}
+.big{font-size:3rem;text-align:center;margin:4px 0}
+.c{text-align:center}
+</style></head><body><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a,pick=a=>a[r(0,a.length-1)];
+const nf=(x,d=0)=>x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+let P={pts:0,b:{},t:{}};try{P=Object.assign(P,JSON.parse(localStorage.getItem("mq")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("mq",JSON.stringify(P))}catch(e){}};
+/* === BACKEND: paste your Apps Script Web App URL (ends with /exec) === */
+const API="PASTE_YOUR_WEB_APP_URL_HERE";
+const api=(a,d)=>API.startsWith("http")?fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action:a},d))}).then(r=>r.json()):Promise.resolve({ok:false});
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function loadLB(){api("leaderboard",{}).then(d=>{const e=$("#lb");if(!e)return;e.innerHTML=d.ok&&d.rows.length?d.rows.map((x,i)=>`<div>${i+1}. ${esc(x.name)} – ${x.points} pts</div>`).join(""):"No scores yet / Wala pang iskor."}).catch(()=>{})}
+const GN=["Kinder","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6"];
+const TOP={add:["Addition","Pagdaragdag"],sub:["Subtraction","Pagbabawas"],mul:["Multiplication","Pagpaparami"],div:["Division","Paghahati"],pv:["Place Value","Halaga ng Digit"],dec:["Decimals","Desimal"]};
+const LV=[["Easy","Madali"],["Average","Katamtaman"],["Difficult","Mahirap"]];
+const BD={first:["🌱","First Round","Unang Round"],streak:["🔥","5 in a row","5 magkakasunod"],perfect:["🏆","Perfect 10","Perpekto"],explorer:["🧭","3 topics tried","3 paksa"],challenger:["🦁","Difficult 7+","Mahirap 7+"]};
+const avail=g=>["add","sub",...(g>=2?["mul","div"]:[]),"pv",...(g>=4?["dec"]:[])];
+const AS=[[5,10,20],[20,50,100],[100,500,1000],[1000,5000,10000],[10000,100000,1000000],[100000,1000000,10000000],[1000000,10000000,100000000]];
+const MD=[0,0,[[5,5],[10,5],[10,10]],[[5,5],[10,10],[99,9]],[[99,9],[999,9],[99,99]],[[999,9],[999,99],[9999,99]],[[999,99],[9999,99],[9999,999]]];
+const PL=[["ones","isahan"],["tens","sampuan"],["hundreds","sandaanan"],["thousands","sanlibuan"],["ten thousands","sampung libuan"],["hundred thousands","sandaang libuan"],["millions","milyon"],["ten millions","sampung milyon"],["hundred millions","sandaang milyon"]];
+const DN=[["tenths","ikasampu"],["hundredths","ikasandaan"],["thousandths","ikasanlibo"]];
+const NM=["Ana","Ben","Lia","Marco"],IT=[["mangoes","mangga"],["pencils","lapis"],["marbles","holen"],["stickers","sticker"]];
+const W=(t,a,b)=>{const n=pick(NM),[e,f]=pick(IT),A=nf(a),B=nf(b);return{
+add:{en:`${n} has ${A} ${e} and gets ${B} more. How many ${e} now?`,fil:`May ${A} ${f} si ${n} at nadagdagan pa ng ${B}. Ilan na ang ${f} niya?`},
+sub:{en:`${n} has ${A} ${e} and gives away ${B}. How many are left?`,fil:`May ${A} ${f} si ${n}. Nagbigay siya ng ${B}. Ilan ang natira?`},
+mul:{en:`There are ${A} bags with ${B} ${e} in each bag. How many ${e} in all?`,fil:`May ${A} supot na may ${B} ${f} bawat isa. Ilan lahat ang ${f}?`},
+div:{en:`${n} shares ${A} ${e} equally among ${B} friends. How many does each friend get?`,fil:`Hinati ni ${n} nang pantay ang ${A} ${f} sa ${B} kaibigan. Ilan ang bawat isa?`}}[t]};
+function pvq(g,l){const d=Math.min(g?9:2,Math.max(2,[2,2,3,4,6,7,9][g]+l-1));
+let ds=[0,1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);if(ds[0]==0)ds.push(ds.shift());ds=ds.slice(0,d);
+const N=+ds.join(""),F=nf(N);
+if(Math.random()<.6){const ps=[...Array(d).keys()].filter(p=>ds[d-1-p]),p=pick(ps),dg=ds[d-1-p];
+return{en:`In ${F}, what is the value of the digit ${dg}?`,fil:`Sa ${F}, ano ang halaga ng digit na ${dg}?`,ans:dg*10**p}}
+const p=r(0,d-1);return{en:`In ${F}, which digit is in the ${PL[p][0]} place?`,fil:`Sa ${F}, aling digit ang nasa ${PL[p][1]}?`,ans:ds[d-1-p],kind:"digit"}}
+function decq(g,l){const dp=Math.min(3,1+(l>0)+(g==6&&l==2)),s=10**dp,top=10**(g-3)*(l+1),R=()=>r(s,top*s)/s;
+let a=R(),b=R();const k=pick(["add","sub","dpv"].concat(g>4?["mul"]:[])),A=()=>nf(a,dp),B=()=>nf(b,dp);
+if(k=="add"){const q=Math.random()<.4?{en:`Ana buys a notebook for ₱${A()} and a pen for ₱${B()}. How much does she pay in all?`,fil:`Bumili si Ana ng kuwaderno sa ₱${A()} at bolpen sa ₱${B()}. Magkano lahat?`}:{en:`${A()} + ${B()} = ?`};q.ans=Math.round((a+b)*s)/s;q.dp=dp;return q}
+if(k=="sub"){if(a<=b)a=Math.round((b+1+r(0,9)/s)*s)/s;return{en:`${A()} − ${B()} = ?`,ans:Math.round((a-b)*s)/s,dp}}
+if(k=="mul"){const w=r(2,9);return{en:`${A()} × ${w} = ?`,ans:Math.round(a*w*s)/s,dp}}
+const p=r(0,dp-1);return{en:`In ${a.toFixed(dp)}, which digit is in the ${DN[p][0]} place?`,fil:`Sa ${a.toFixed(dp)}, aling digit ang nasa ${DN[p][1]}?`,ans:+a.toFixed(dp).split(".")[1][p],kind:"digit"}}
+function gen(g,t,l){const wp=Math.random()<.4;let q,a,b;
+if(t=="add"||t=="sub"){const m=AS[g][l],lo=Math.max(1,m/10|0);a=r(Math.max(t=="sub"?2:1,lo),m);b=t=="add"?r(lo,m):r(Math.min(lo,a-1),a-1);
+q=wp&&m<=1e5?W(t,a,b):{en:`${nf(a)} ${t=="add"?"+":"−"} ${nf(b)} = ?`};q.ans=t=="add"?a+b:a-b}
+else if(t=="mul"){const[x,y]=MD[g][l];a=r(2,x);b=r(2,y);q=wp&&a*b<1e5?W("mul",a,b):{en:`${nf(a)} × ${nf(b)} = ?`};q.ans=a*b}
+else if(t=="div"){const[x,y]=MD[g][l];b=r(2,y);const k=r(2,x);a=b*k;q=wp&&a<1e5?W("div",a,b):{en:`${nf(a)} ÷ ${nf(b)} = ?`};q.ans=k}
+else q=t=="pv"?pvq(g,l):decq(g,l);
+q.mc=Math.random()<.5;return q}
+function choices(q){const dp=q.dp||0,s=10**dp,set=new Set([q.ans]);let n=0;
+while(set.size<4&&n++<80){const c=q.kind=="digit"?r(0,9):Math.round((q.ans+(Math.random()<.5?-1:1)*pick([1,2,10,100,r(1,9)])/s)*s)/s;if(c>=0)set.add(c)}
+let k=1;while(set.size<4)set.add(q.ans+k++);return[...set].sort(()=>Math.random()-.5)}
+const S={g:1,t:"add",l:0};
+const chip=(on,fn,e,f)=>`<button class="chip${on?" on":""}" onclick="${fn}">${e}${f?`<small>${f}</small>`:""}</button>`;
+function home(){const av=avail(S.g);if(!av.includes(S.t))S.t=av[0];
+$("#app").innerHTML=`<h1>🧮 MathQuest</h1><p class="sub">Matematika K–6 · Practice by grade, topic and level</p>
+<div class="card"><b>Points / Puntos: ${P.pts}</b><div class="bd">${Object.keys(BD).map(k=>`<span class="${P.b[k]?"":"lock"}" title="${BD[k][1]} / ${BD[k][2]}">${BD[k][0]}</span>`).join("")}</div></div>
+<div class="card"><h4>Name / Pangalan</h4><input id="nm" maxlength="30" value="${esc(P.name||"")}" placeholder="Your name / Pangalan mo" oninput="P.name=this.value;save()"></div>
+<div class="card"><h4>Top learners / Nangunguna</h4><div id="lb">Loading…</div></div>
+<div class="card"><h4>Grade / Baitang</h4><div class="row">${GN.map((n,i)=>chip(i==S.g,`S.g=${i};home()`,n)).join("")}</div></div>
+<div class="card"><h4>Topic / Paksa</h4><div class="row">${av.map(k=>chip(k==S.t,`S.t='${k}';home()`,TOP[k][0],TOP[k][1])).join("")}</div></div>
+<div class="card"><h4>Level / Antas</h4><div class="row">${LV.map((v,i)=>chip(i==S.l,`S.l=${i};home()`,v[0],v[1])).join("")}</div></div>
+<button class="pri" onclick="start()">Start / Simulan</button>`;loadLB()}
+function start(){Object.assign(S,{i:0,sc:0,st:0,rt:0,mx:0,lock:0});show()}
+function show(){const q=S.q=gen(S.g,S.t,S.l);S.lock=0;
+let h=`<div class="bar"><i style="width:${S.i*10}%"></i></div><div class="meta"><span>${GN[S.g]} · ${TOP[S.t][0]}</span><span>${S.i+1}/10 · ⭐ ${S.sc} · 🔥 ${S.st}</span></div><div class="card"><p class="in">Solve. / Lutasin.</p><h2>${q.en}</h2>${q.fil?`<h3>${q.fil}</h3>`:""}`;
+h+=q.mc?`<div class="ch">${choices(q).map(c=>`<button class="opt" data-v="${c}" onclick="chk(${c},this)">${nf(c,q.dp||0)}</button>`).join("")}</div>`:`<input id="ans" inputmode="decimal" autocomplete="off" placeholder="Your answer / Sagot" aria-label="Answer"><button class="pri" onclick="chk()">Check / Suriin</button>`;
+$("#app").innerHTML=h+`<div id="fb"></div></div>`;const a=$("#ans");if(a)a.focus()}
+function chk(c,el){if(S.lock)return;const q=S.q;let v=c;
+if(v===undefined){v=parseFloat($("#ans").value.replace(/,/g,""));if(isNaN(v))return}
+S.lock=1;const ok=Math.abs(v-q.ans)<1e-6;
+if(ok){S.rt++;S.st++;S.mx=Math.max(S.mx,S.st);S.sc+=[10,20,30][S.l]+(S.st>=3?5:0)}else S.st=0;
+document.querySelectorAll(".opt").forEach(b=>{b.disabled=1;if(+b.dataset.v==q.ans)b.classList.add("ok")});if(el&&!ok)el.classList.add("bad");
+const a=$("#ans");if(a)a.disabled=1;
+$("#fb").innerHTML=`<div class="fb ${ok?"ok":"bad"}">${ok?pick(["Correct! / Tama!","Great job! / Magaling!","Galing! You got it!"]):`Not yet. / Hindi pa. Answer / Sagot: ${nf(q.ans,q.dp||0)}`}</div><button class="pri" onclick="nxt()">${S.i==9?"See results / Tingnan ang resulta":"Next / Susunod"}</button>`;$(".pri").focus()}
+function nxt(){S.i++;S.i>=10?end():show()}
+function end(){const nw=[],earn=k=>{if(!P.b[k]){P.b[k]=1;nw.push(k)}};
+earn("first");if(S.mx>=5)earn("streak");if(S.rt==10)earn("perfect");if(S.l==2&&S.rt>=7)earn("challenger");
+P.t[S.t]=1;if(Object.keys(P.t).length>=3)earn("explorer");P.pts+=S.sc;save();api("saveResult",{name:P.name||"Guest",grade:GN[S.g],topic:S.t,level:LV[S.l][0],correct:S.rt,total:10,points:S.sc}).catch(()=>{});
+const st=S.rt>=9?3:S.rt>=7?2:S.rt>=5?1:0;
+$("#app").innerHTML=`<div class="card c"><div class="big">${"⭐".repeat(st)||"💪"}</div><h2>${S.rt} / 10</h2><p>+${S.sc} points / puntos</p><p>${st>1?"Excellent! / Napakahusay!":st?"Good work! / Magaling!":"Keep practicing! / Magsanay pa!"}</p>
+${nw.length?`<h4>New badges / Bagong badge</h4><div class="bd" style="justify-content:center">${nw.map(k=>`<span title="${BD[k][1]}">${BD[k][0]}</span>`).join("")}</div><p>${nw.map(k=>BD[k][1]+" / "+BD[k][2]).join(", ")}</p>`:""}
+<button class="pri" onclick="start()">Play again / Ulitin</button><button class="sec" onclick="home()">Change topic / Palitan</button></div>`}
+document.addEventListener("keydown",e=>{if(e.key=="Enter"&&$("#ans")&&!S.lock&&S.q){chk()}});
+home();
+</script></body></html>
